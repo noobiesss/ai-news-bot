@@ -37,7 +37,7 @@ def collect():
         try:
             feed = feedparser.parse(url)
         except Exception:
-            continue  # skip a broken feed, keep going
+            continue
         count = 0
         for e in feed.entries:
             ts = entry_time(e)
@@ -77,12 +77,16 @@ def send(text):
         },
         timeout=30,
     )
-    r.raise_for_status()
+    if not r.ok:
+        print(f"Telegram error {r.status_code}: {r.text}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     try:
         send(build_message(collect()))
+    except SystemExit:
+        raise
     except Exception as e:
         print(f"Failed: {type(e).__name__}", file=sys.stderr)
         sys.exit(1)
